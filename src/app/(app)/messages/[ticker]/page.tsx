@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { AssetAvatar } from "@/components/asset-avatar";
 import { Badge } from "@/components/ui/badge";
 import { ChatThread, type ThreadItem } from "@/components/chat-thread";
+import { computeIndicators, type Tone } from "@/lib/messages/rules";
+import { reactionFor } from "@/lib/messages/reactions";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
 import { TradeActions } from "@/components/trade-actions";
 import { loadAppData, portfolio } from "@/lib/app-data";
@@ -24,6 +26,16 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
   const messages = data.messages.filter((m) => m.assetId === asset.id && m.date <= today);
   const trades = data.trades.filter((t) => t.assetId === asset.id && t.tradeDate <= today);
 
+  // Streaks aren't stored on the message row, but the reactions want them
+  // ("cutting me loose on day 6"). Recomputing the indicator series once per
+  // asset and indexing it by date is cheaper than storing a denormalised copy
+  // that could drift from the prices it came from.
+  const indicatorsByDate = new Map(
+    computeIndicators(ticker, data.prices[ticker] ?? []).map((d) => [d.date, d]),
+  );
+  const messageById = new Map(messages.map((m) => [m.id, m]));
+  const messageByDate = new Map(messages.map((m) => [m.date, m]));
+
   const items: ThreadItem[] = [
     ...messages.map((m) => ({
       kind: "message" as const, id: m.id, date: m.date, body: m.body,
@@ -33,10 +45,31 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
       kind: "reply" as const, id: t.id, date: t.tradeDate, action: t.action,
       notional: t.notional, price: t.price, quantity: t.quantity,
     })),
+    // One reaction per trade. The tone comes from the message the trade
+    // answered -- by explicit link where we have one, falling back to whatever
+    // the asset said that day for trades placed outside a thread.
+    ...trades.map((t) => {
+      const source = (t.messageId !== null ? messageById.get(t.messageId) : undefined)
+        ?? messageByDate.get(t.tradeDate);
+      const ind = indicatorsByDate.get(source?.date ?? t.tradeDate);
+      const reaction = reactionFor({
+        ticker,
+        date: t.tradeDate,
+        tone: (source?.tone as Tone | undefined) ?? null,
+        action: t.action,
+        streak: Math.max(ind?.downStreak ?? 0, ind?.upStreak ?? 0),
+        pctChange: source?.pctChange ?? ind?.pctChange ?? 0,
+      });
+      return {
+        kind: "reaction" as const, id: t.id, date: t.tradeDate,
+        body: reaction.text, mood: reaction.mood,
+      };
+    }),
   ].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
-    // Within a day the text arrives before the reply to it.
-    if (a.kind !== b.kind) return a.kind === "message" ? -1 : 1;
+    // Within a day: the text, then your reply, then its comeback.
+    const rank = { message: 0, reply: 1, reaction: 2 } as const;
+    if (a.kind !== b.kind) return rank[a.kind] - rank[b.kind];
     return a.id - b.id;
   });
 

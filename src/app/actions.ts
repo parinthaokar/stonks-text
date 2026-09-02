@@ -11,12 +11,25 @@ import { revalidatePath } from "next/cache";
 import { getDataSource } from "@/lib/data";
 import { loadAppData, ledger, nextMessageDate, nextSimDate } from "@/lib/app-data";
 import { simulate } from "@/lib/portfolio";
-import { BET_SIZE } from "@/lib/config";
+import { BET_SIZE, BIG_MOVER_PRIORITY } from "@/lib/config";
 import type { TradeAction } from "@/lib/data/types";
 
 export interface TradeResult {
   ok: boolean;
   message: string;
+}
+
+export interface AdvanceResult extends TradeResult {
+  /** The sim date after advancing. */
+  date?: string;
+  /**
+   * Set when auto-play should stop here. Auto-advancing straight past a -7%
+   * crash without giving you a chance to reply would make the clock the thing
+   * playing the game instead of you.
+   */
+  pauseReason?: string;
+  /** True once there is nothing left to advance to. */
+  atEnd?: boolean;
 }
 
 /**
@@ -88,15 +101,44 @@ export async function placeTrade(
  * which is how you play through a year without clicking through 200 silent
  * weekends. "next-day" steps one calendar day for fine control.
  */
-export async function advanceSim(mode: "next-day" | "next-message"): Promise<TradeResult> {
+export async function advanceSim(mode: "next-day" | "next-message"): Promise<AdvanceResult> {
   const data = await loadAppData();
   const next = mode === "next-message" ? nextMessageDate(data) : nextSimDate(data);
 
-  if (!next) return { ok: false, message: "You've reached the end of the dataset." };
+  if (!next) {
+    return { ok: false, message: "You've reached the end of the dataset.", atEnd: true };
+  }
 
   await getDataSource().setSimState({ simDate: next });
   revalidatePath("/", "layout");
-  return { ok: true, message: `Advanced to ${next}.` };
+
+  // Anything landing on the new date is unanswered by definition -- you haven't
+  // had the chance yet. Read from the pre-advance snapshot rather than
+  // refetching: loadAppData is request-cached, so a second call here would
+  // return the same stale state anyway.
+  const bigMovers = data.messages.filter(
+    (m) => m.date === next && m.priority >= BIG_MOVER_PRIORITY,
+  );
+
+  let pauseReason: string | undefined;
+  if (bigMovers.length > 0) {
+    const tickers = [...new Set(bigMovers.map((m) => data.assetById.get(m.assetId)?.ticker ?? ""))]
+      .filter(Boolean);
+    pauseReason =
+      tickers.length === 1
+        ? `${tickers[0]} needs an answer.`
+        : `${tickers.slice(0, 3).join(", ")} need an answer.`;
+  }
+
+  const hasMore = nextMessageDate({ ...data, sim: { ...data.sim, simDate: next } }) !== null;
+
+  return {
+    ok: true,
+    message: `Advanced to ${next}.`,
+    date: next,
+    pauseReason,
+    atEnd: !hasMore,
+  };
 }
 
 /** Wipe the ledger and send the clock back to the start of the window. */

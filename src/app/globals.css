@@ -160,3 +160,67 @@
   --viz-seq: #3987e5;
   --viz-grid: #2c2c2a;
 }
+
+/* ---------------------------------------------------------------------------
+   Motion.
+
+   Two rules govern everything here:
+   1. Only NEW things animate. A thread can hold a hundred bubbles; animating
+      all of them on every navigation is noise, not polish. Entrances are
+      applied to the last few items only -- the ones actually in view after the
+      thread pins to the bottom.
+   2. Everything is disabled under prefers-reduced-motion. Sliding chat bubbles
+      are exactly the kind of motion that triggers vestibular symptoms, and this
+      is decoration, not information.
+--------------------------------------------------------------------------- */
+
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Collapses the typing indicator away rather than just hiding it -- you can't
+   transition `display`, so height/padding/opacity do the work together. */
+@keyframes typing-out {
+  0%, 92%  { opacity: 1; }
+  100%     { opacity: 0; height: 0; margin: 0; padding: 0; overflow: hidden; }
+}
+
+@keyframes dot-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes tick-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes value-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.animate-bubble-in  { animation: bubble-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-typing-out { animation: typing-out 900ms linear both; overflow: hidden; }
+.animate-value-pop  { animation: value-pop 420ms ease-out; }
+
+.typing-dot { animation: dot-bounce 1.1s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* The countdown bar under the header while the sim auto-plays. */
+.animate-tick-fill { transform-origin: left; animation: tick-fill linear both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bubble-in,
+  .animate-typing-out,
+  .animate-value-pop,
+  .animate-tick-fill,
+  .typing-dot {
+    animation: none !important;
+  }
+  /* The typing indicator is purely decorative; with motion off, skip it. */
+  .animate-typing-out { display: none; }
+}

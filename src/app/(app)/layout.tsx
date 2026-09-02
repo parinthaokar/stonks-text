@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <SidebarProvider>
       <AppSidebar conversations={items} simDate={data.sim.simDate} sourceKind={data.sourceKind} />
       <SidebarInset className="min-w-0">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
+        <header className="relative flex h-14 shrink-0 items-center gap-3 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <SimClock
             simDate={data.sim.simDate}

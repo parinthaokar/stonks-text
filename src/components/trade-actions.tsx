@@ -41,20 +41,20 @@ export function TradeActions({
       )}
       <div className="mx-auto flex max-w-3xl gap-2">
         <Button
-          variant="outline" className="flex-1" disabled={pending || !tradeable || !canSell}
+          variant="outline" className="flex-1 transition-transform active:scale-[0.97]" disabled={pending || !tradeable || !canSell}
           onClick={() => reply("sell")}
         >
           <TrendingDown className="text-red-600 dark:text-red-400" />
           Sell it
         </Button>
         <Button
-          variant="outline" className="flex-1" disabled={pending || !tradeable}
+          variant="outline" className="flex-1 transition-transform active:scale-[0.97]" disabled={pending || !tradeable}
           onClick={() => reply("hold")}
         >
           <Minus /> Hold
         </Button>
         <Button
-          variant="outline" className="flex-1" disabled={pending || !tradeable || !canBuy}
+          variant="outline" className="flex-1 transition-transform active:scale-[0.97]" disabled={pending || !tradeable || !canBuy}
           onClick={() => reply("buy")}
         >
           <TrendingUp className="text-emerald-600 dark:text-emerald-400" />
