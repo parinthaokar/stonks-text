@@ -1,0 +1,139 @@
+{
+  "generated_at": "2026-09-02",
+  "as_of": "2026-09-02",
+  "years_of_history": 2,
+  "assets": [
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "type": "stock",
+      "category": "Consumer Tech",
+      "color": "#8E8E93",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/AAPL.csv"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "type": "stock",
+      "category": "Software",
+      "color": "#0A84FF",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/MSFT.csv"
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "type": "stock",
+      "category": "Communication",
+      "color": "#34C759",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/GOOGL.csv"
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "type": "stock",
+      "category": "E-Commerce",
+      "color": "#FF9F0A",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/AMZN.csv"
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms",
+      "type": "stock",
+      "category": "Communication",
+      "color": "#5E5CE6",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/META.csv"
+    },
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "type": "stock",
+      "category": "Semiconductors",
+      "color": "#30D158",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/NVDA.csv"
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD",
+      "type": "stock",
+      "category": "Semiconductors",
+      "color": "#FF453A",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/AMD.csv"
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "type": "stock",
+      "category": "Autos",
+      "color": "#FF375F",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/TSLA.csv"
+    },
+    {
+      "ticker": "COIN",
+      "name": "Coinbase",
+      "type": "stock",
+      "category": "Fintech",
+      "color": "#0040FF",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/COIN.csv"
+    },
+    {
+      "ticker": "GME",
+      "name": "GameStop",
+      "type": "stock",
+      "category": "Retail",
+      "color": "#BF5AF2",
+      "rows": 507,
+      "first_date": "2024-08-26",
+      "last_date": "2026-09-02",
+      "file": "prices/GME.csv"
+    },
+    {
+      "ticker": "BTC-USD",
+      "name": "Bitcoin",
+      "type": "crypto",
+      "category": "Crypto",
+      "color": "#F7931A",
+      "rows": 740,
+      "first_date": "2024-08-24",
+      "last_date": "2026-09-02",
+      "file": "prices/BTC-USD.csv"
+    },
+    {
+      "ticker": "ETH-USD",
+      "name": "Ethereum",
+      "type": "crypto",
+      "category": "Crypto",
+      "color": "#627EEA",
+      "rows": 740,
+      "first_date": "2024-08-24",
+      "last_date": "2026-09-02",
+      "file": "prices/ETH-USD.csv"
+    }
+  ]
+}

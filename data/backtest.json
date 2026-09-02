@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-09-02",
+  "window": {
+    "from": "2025-09-02",
+    "to": "2026-09-02"
+  },
+  "assets": 12,
+  "messages": 917,
+  "starting_cash": 10000,
+  "bet_size": 500,
+  "execution": "next session",
+  "strategies": {
+    "Buy & hold (equal weight)": {
+      "endValue": 11498.602162578556,
+      "totalReturnPct": 14.986021625785561,
+      "maxDrawdownPct": 24.229325853005943,
+      "volatilityPct": 22.039797207084106,
+      "sharpe": 0.5476485797517463,
+      "filledTrades": 12
+    },
+    "Reactive": {
+      "endValue": 12876.391087499955,
+      "totalReturnPct": 28.76391087499955,
+      "maxDrawdownPct": 18.947768082745334,
+      "volatilityPct": 22.153090894140096,
+      "sharpe": 0.8980719744770518,
+      "filledTrades": 207
+    },
+    "Contrarian": {
+      "endValue": 10794.924808728225,
+      "totalReturnPct": 7.949248087282249,
+      "maxDrawdownPct": 27.196008382828957,
+      "volatilityPct": 22.585463866796783,
+      "sharpe": 0.34673494330071036,
+      "filledTrades": 231
+    },
+    "Coin flip": {
+      "endValue": 10185.157286348956,
+      "totalReturnPct": 1.851572863489564,
+      "maxDrawdownPct": 18.813697067387437,
+      "volatilityPct": 19.24077725492061,
+      "sharpe": 0.16194548298857572,
+      "filledTrades": 421
+    }
+  }
+}
