@@ -108,7 +108,7 @@ export function SimClock({
       <span
         // Re-keyed on the date so the number visibly ticks over on each advance.
         key={simDate}
-        className="hidden animate-value-pop text-sm font-medium tabular-nums md:inline"
+        className="hidden animate-value-pop text-sm font-semibold tabular-nums md:inline"
       >
         {longDate(simDate)}
       </span>
@@ -131,17 +131,21 @@ export function SimClock({
         <RotateCcw className="size-3.5" />
       </Button>
 
-      {/* Countdown to the next auto-advance, pinned to the bottom of the header.
-          Keyed on the date so the fill restarts cleanly every tick. */}
-      <span
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-0 h-0.5 origin-left bg-primary/70",
-          isPlaying && !pending ? "animate-tick-fill" : "hidden",
-        )}
-        key={`bar-${simDate}`}
-        style={{ animationDuration: `${interval}ms` }}
-      />
+      {/* The bar under the header does double duty: a countdown to the next
+          auto-advance while playing, and an indeterminate pulse while an
+          advance is actually in flight. Keyed so the countdown fill restarts
+          cleanly on every tick instead of resuming mid-animation. */}
+      {(pending || isPlaying) && (
+        <span
+          aria-hidden
+          key={pending ? "advancing" : `tick-${simDate}`}
+          className={cn(
+            "pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-primary/70",
+            pending ? "animate-bar-pulse" : "origin-left animate-tick-fill",
+          )}
+          style={pending ? undefined : { animationDuration: `${interval}ms` }}
+        />
+      )}
     </div>
   );
 }

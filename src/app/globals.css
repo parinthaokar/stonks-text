@@ -224,3 +224,54 @@
   /* The typing indicator is purely decorative; with motion off, skip it. */
   .animate-typing-out { display: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   Day-change announcement.
+
+   The sim can jump several days at a time, and a small date in the header is
+   easy to miss -- you look up and the prices have changed with no idea when.
+   This is the beat that says the clock moved.
+
+   Driven entirely by CSS with the element keyed on the date, so nothing needs a
+   timer or a piece of state to hide it again; the animation ends at
+   `visibility: hidden` and the card stops existing for hit-testing.
+--------------------------------------------------------------------------- */
+
+@keyframes day-flash {
+  0%   { opacity: 0; transform: translateY(-10px) scale(0.94); }
+  10%  { opacity: 1; transform: none; }
+  68%  { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-6px) scale(0.99); visibility: hidden; }
+}
+
+/* Same information, no movement. Reduced-motion users still need to be told
+   the day changed -- that is content, not decoration -- so this fades rather
+   than being switched off entirely. */
+@keyframes day-flash-reduced {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  68%  { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.animate-day-flash {
+  animation: day-flash 1900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-day-flash { animation: day-flash-reduced 1900ms linear forwards; }
+}
+
+/* Indeterminate bar while an advance is in flight. useTransition keeps the old
+   screen on-screen (which is what makes the change feel seamless rather than
+   flashing a spinner), but with nothing moving at all a slow round trip reads
+   as a frozen app. This is the "working on it" signal. */
+@keyframes bar-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 0.9; }
+}
+.animate-bar-pulse { animation: bar-pulse 900ms ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bar-pulse { animation: none; opacity: 0.6; }
+}

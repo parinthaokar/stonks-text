@@ -123,7 +123,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
       <div id="thread-scroll" className="min-h-0 flex-1 overflow-y-auto">
         <ChatThread items={items} ticker={asset.ticker} color={asset.color} />
       </div>
-      <ScrollToBottom dep={`${ticker}-${today}-${items.length}`} />
+      <ScrollToBottom ticker={ticker} dep={`${today}-${items.length}`} />
 
       <TradeActions
         assetId={asset.id}
