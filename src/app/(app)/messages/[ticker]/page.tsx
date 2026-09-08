@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { AssetAvatar } from "@/components/asset-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,7 @@ import { reactionFor } from "@/lib/messages/reactions";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
 import { TradeActions } from "@/components/trade-actions";
 import { loadAppData, portfolio } from "@/lib/app-data";
-import { BET_SIZE } from "@/lib/config";
+import { BET_SIZE, TRADE_SIZE_COOKIE, parseTradeSize } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { currency, pnlColor, signedPercent } from "@/lib/format";
 
@@ -82,6 +83,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
       : 0;
 
   const position = view.positions.find((p) => p.ticker === ticker);
+
+  // Read the size preference server-side so the reply bar hydrates with the
+  // value it was rendered with -- no first-paint flash of the wrong amount.
+  const size = parseTradeSize((await cookies()).get(TRADE_SIZE_COOKIE)?.value) ?? BET_SIZE;
   const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
 
   return (
@@ -124,9 +129,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
         assetId={asset.id}
         messageId={latestMessageId}
         ticker={asset.ticker}
-        betSize={BET_SIZE}
-        canSell={Boolean(position && position.shares > 1e-9)}
-        canBuy={view.cash >= BET_SIZE}
+        initialSize={size}
+        cash={view.cash}
+        positionValue={position?.marketValue ?? 0}
         tradeable={data.lookup.isTradeable(ticker, today)}
       />
     </div>

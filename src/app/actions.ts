@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
 import { getDataSource } from "@/lib/data";
 import { loadAppData, ledger, nextMessageDate, nextSimDate } from "@/lib/app-data";
 import { simulate } from "@/lib/portfolio";
-import { BET_SIZE, BIG_MOVER_PRIORITY } from "@/lib/config";
+import { BET_SIZE, BIG_MOVER_PRIORITY, parseTradeSize, type TradeSize } from "@/lib/config";
 import type { TradeAction } from "@/lib/data/types";
 
 export interface TradeResult {
@@ -43,10 +43,17 @@ export async function placeTrade(
   assetId: number,
   messageId: number | null,
   action: TradeAction,
+  requestedSize: TradeSize | string | number = BET_SIZE,
 ): Promise<TradeResult> {
   const data = await loadAppData();
   const asset = data.assetById.get(assetId);
   if (!asset) return { ok: false, message: "Unknown asset." };
+
+  // A disabled button is a hint, not a guarantee. Sizes are checked against a
+  // fixed allowlist rather than accepted as a number, so a crafted call can't
+  // open a $10,000,000 position.
+  const size = parseTradeSize(requestedSize);
+  if (size === null) return { ok: false, message: "Invalid trade size." };
 
   const today = data.sim.simDate;
   const price = data.lookup.closeOn(asset.ticker, today);
@@ -70,28 +77,49 @@ export async function placeTrade(
   });
 
   if (action === "buy") {
-    if (cash < BET_SIZE) {
-      return { ok: false, message: `Not enough cash — you have ${cash.toFixed(2)} left.` };
+    // "max" deploys everything left; a preset spends exactly that much.
+    const notional = size === "max" ? cash : size;
+
+    if (notional < 1) {
+      return { ok: false, message: `Not enough cash — you have $${cash.toFixed(2)} left.` };
     }
-    const quantity = BET_SIZE / price;
+    if (notional > cash + 1e-9) {
+      return {
+        ok: false,
+        message: `Not enough cash for a $${notional} buy — you have $${cash.toFixed(2)}.`,
+      };
+    }
+
+    const quantity = notional / price;
     await source.addTrade({
-      assetId, messageId, action: "buy", price, quantity, notional: BET_SIZE, tradeDate: today,
+      assetId, messageId, action: "buy", price, quantity, notional, tradeDate: today,
     });
     revalidatePath("/", "layout");
-    return { ok: true, message: `Bought $${BET_SIZE} of ${asset.ticker} at $${price.toFixed(2)}.` };
+    return {
+      ok: true,
+      message: `Bought $${notional.toFixed(0)} of ${asset.ticker} at $${price.toFixed(2)}.`,
+    };
   }
 
   const held = positions.find((p) => p.ticker === asset.ticker)?.shares ?? 0;
   if (held <= 1e-9) return { ok: false, message: `You don't own any ${asset.ticker}.` };
 
-  // Sell a fixed dollar amount, or the whole position if it's worth less.
-  const quantity = Math.min(BET_SIZE / price, held);
+  // Sell the requested dollar amount, or the whole position if it's worth less
+  // -- so a $1,000 tap on a $300 position closes it rather than failing.
+  const quantity = size === "max" ? held : Math.min(size / price, held);
   const notional = quantity * price;
+  const closed = quantity >= held - 1e-9;
+
   await source.addTrade({
     assetId, messageId, action: "sell", price, quantity, notional, tradeDate: today,
   });
   revalidatePath("/", "layout");
-  return { ok: true, message: `Sold $${notional.toFixed(0)} of ${asset.ticker} at $${price.toFixed(2)}.` };
+  return {
+    ok: true,
+    message: closed
+      ? `Closed ${asset.ticker} — sold $${notional.toFixed(0)} at $${price.toFixed(2)}.`
+      : `Sold $${notional.toFixed(0)} of ${asset.ticker} at $${price.toFixed(2)}.`,
+  };
 }
 
 /**

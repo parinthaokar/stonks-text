@@ -150,6 +150,18 @@ rising market." The coin flip runs the same message stream, on the same days, un
 same cash constraint, and picks its action without reading the message. Reactive clears it
 by **26.9 points**, which is the comparison that actually supports the claim.
 
+### Position sizing
+
+The reply bar lets you trade $250, $500, $1,000, or your whole balance / position.
+The **reference strategies always bet a fixed $500**, and deliberately so: Reactive,
+Contrarian and Coin flip are only comparable to each other because every one of them
+stakes the same amount on every signal. Letting the benchmarks size variably would turn a
+strategy comparison into a position-sizing comparison, which is a different experiment.
+
+Your own curve is derived from your ledger, so variable sizing is handled correctly — but
+it does mean a big edge over the benchmark can come from sizing rather than from timing.
+Worth saying out loud if you quote your own number rather than the Reactive one.
+
 ### A control that didn't work, and what it taught us
 
 The first fairness control was "make the same buys on the same days, but never sell" — to
