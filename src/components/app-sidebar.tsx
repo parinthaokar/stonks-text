@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, PieChart, LineChart, FlaskConical } from "lucide-react";
+import { MessageSquare, PieChart, LineChart } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -24,7 +24,6 @@ const NAV = [
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/portfolio", label: "Portfolio", icon: PieChart },
   { href: "/data", label: "Data", icon: LineChart },
-  { href: "/lab", label: "Mood Lab", icon: FlaskConical },
 ];
 
 export function AppSidebar({

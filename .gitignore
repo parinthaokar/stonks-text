@@ -46,6 +46,3 @@ __pycache__/
 
 # local dev sim state (file-backed data source)
 data/.local-state.json
-
-# python bytecode from the ml package
-ml/__pycache__/
