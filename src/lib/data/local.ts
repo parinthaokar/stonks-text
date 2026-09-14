@@ -137,6 +137,8 @@ export function createLocalSource(): DataSource {
       // where the same arithmetic happens inside the trade server action.
       if (t.action === "buy") s.sim.cash -= t.notional;
       if (t.action === "sell") s.sim.cash += t.notional;
+      // Held to the cent; see the note in the Supabase source.
+      s.sim.cash = Math.round(s.sim.cash * 100) / 100;
       writeState(s);
     },
 

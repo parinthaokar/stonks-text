@@ -193,6 +193,30 @@ Sharpe annualise with the conventional 252-session factor.
 
 ---
 
+## The Mood Engine (ML service)
+
+A separate deliverable living in `ml/`: a fitted scikit-learn Pipeline served over FastAPI,
+deployed to Modal, and driven from the app's `/lab` tab.
+
+- **API:** https://parinthaokar--stonks-mood-engine-fastapi-app.modal.run ([docs](https://parinthaokar--stonks-mood-engine-fastapi-app.modal.run/docs))
+- **Pipeline:** `MarketMoodFeatures` (custom) → `StandardScaler` → `LogisticRegression`
+- **Learned state:** scaler means/stds, regression coefficients, and a `NearestNeighbors`
+  index over the 3,320-row scaled training matrix — none of which can be rebuilt at boot
+- **Result:** 93.6% accuracy, 0.864 macro-F1, against an 81.1% majority-class baseline
+
+`MarketMoodFeatures` expands seven raw daily numbers into sixteen features — magnitude,
+direction, log-scaled volume, capped streaks, a move x volume interaction — and deliberately
+encodes **none** of the rules engine's thresholds. The model is never told that 5% is the
+line; it has to find that boundary from the data, which is the only part of this that
+constitutes learning.
+
+**The honest caveat:** the labels come from this project's own rules engine, so a high score
+means the model successfully imitated hand-written rules, not that it discovered anything
+about markets. That is appropriate for a serving exercise and is stated plainly on the
+`/lab` page rather than dressed up as a predictive result.
+
+See `ml/SUBMISSION.md` for URLs, the write-up, and the rebuild steps.
+
 ## Supabase
 
 Create a project, then run `supabase/schema.sql` in the SQL editor. Put credentials in

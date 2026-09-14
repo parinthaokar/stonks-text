@@ -11,12 +11,14 @@
     "test:rules": "tsx scripts/test-rules.ts",
     "seed": "tsx scripts/seed.ts",
     "backtest": "tsx scripts/backtest.ts",
-    "demo": "tsx scripts/demo-play.ts"
+    "demo": "tsx scripts/demo-play.ts",
+    "ml:export": "tsx scripts/export-training-data.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.114.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cn": "^0.3.0",
     "lucide-react": "^1.39.0",
     "next": "16.3.4",
     "next-themes": "^0.4.6",

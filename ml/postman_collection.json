@@ -1,0 +1,159 @@
+{
+  "info": {
+    "name": "Stonks & Texts — Mood Engine (Modal)",
+    "description": "Assertions against the deployed Modal API. Covers health, pipeline info, a valid prediction (200), and invalid input (422).\n\nbase_url is a collection variable pointing at the DEPLOYED Modal URL — not localhost. Change it in one place if the deployment URL ever changes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://parinthaokar--stonks-mood-engine-fastapi-app.modal.run",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health — 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] },
+        "description": "Liveness. Returns 503 if the artifact failed to load."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('artifact is loaded', () => pm.expect(body.artifact_loaded).to.eql(true));",
+              "pm.test('status field is ok', () => pm.expect(body.status).to.eql('ok'));",
+              "pm.test('reports sklearn version', () => pm.expect(body.sklearn_version).to.eql('1.9.1'));",
+              "pm.test('not hitting localhost', () => pm.expect(pm.request.url.getHost()).to.not.include('localhost'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Pipeline info — 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/pipeline", "host": ["{{base_url}}"], "path": ["pipeline"] },
+        "description": "Describes the fitted artifact: steps, build time, sklearn version, custom transformer, feature names."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('has the three pipeline steps', () => {",
+              "  pm.expect(body.steps).to.eql(['features', 'scaler', 'classifier']);",
+              "});",
+              "pm.test('names the custom transformer', () => {",
+              "  pm.expect(body.custom_transformer).to.eql('MarketMoodFeatures');",
+              "});",
+              "pm.test('reports built_at', () => pm.expect(body).to.have.property('built_at'));",
+              "pm.test('sklearn version matches the build', () => {",
+              "  pm.expect(body.sklearn_version).to.eql('1.9.1');",
+              "});",
+              "pm.test('learned state is present (trained on real rows)', () => {",
+              "  pm.expect(body.n_training_rows).to.be.above(1000);",
+              "});",
+              "pm.test('custom transformer expanded the feature space', () => {",
+              "  pm.expect(body.engineered_features.length).to.be.above(body.raw_features.length);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Predict — valid input — 200",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pct_change\": -7.4,\n  \"volume_ratio\": 3.1,\n  \"down_streak\": 4,\n  \"up_streak\": 0,\n  \"drawdown_pct\": 22.0,\n  \"is_52w_high\": 0,\n  \"is_52w_low\": 0\n}"
+        },
+        "url": { "raw": "{{base_url}}/predict", "host": ["{{base_url}}"], "path": ["predict"] },
+        "description": "A 7.4% drop on 3.1x volume, four red days in a row. Should come back 'anxious'."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('returns a tone', () => pm.expect(body.tone).to.be.a('string'));",
+              "pm.test('a big drop reads as anxious', () => pm.expect(body.tone).to.eql('anxious'));",
+              "pm.test('confidence is a probability', () => {",
+              "  pm.expect(body.confidence).to.be.at.least(0).and.at.most(1);",
+              "});",
+              "pm.test('probabilities cover all 8 moods', () => {",
+              "  pm.expect(Object.keys(body.probabilities)).to.have.lengthOf(8);",
+              "});",
+              "pm.test('probabilities sum to 1', () => {",
+              "  const total = Object.values(body.probabilities).reduce((a, b) => a + b, 0);",
+              "  pm.expect(total).to.be.closeTo(1, 0.01);",
+              "});",
+              "pm.test('returns an example message', () => {",
+              "  pm.expect(body.example_message).to.be.a('string').and.not.empty;",
+              "});",
+              "pm.test('returns nearest historical days', () => {",
+              "  pm.expect(body.nearest_days).to.be.an('array').that.is.not.empty;",
+              "});",
+              "pm.test('responds quickly (artifact loaded once, not per request)', () => {",
+              "  pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Predict — invalid input — 422",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pct_change\": 999,\n  \"volume_ratio\": -5,\n  \"down_streak\": 900,\n  \"up_streak\": 0,\n  \"drawdown_pct\": 22.0,\n  \"is_52w_high\": 7,\n  \"is_52w_low\": 0\n}"
+        },
+        "url": { "raw": "{{base_url}}/predict", "host": ["{{base_url}}"], "path": ["predict"] },
+        "description": "Four fields out of bounds at once: a 999% move, negative volume, a 900-day streak, and a non-boolean flag. Pydantic must reject all of them with 422 before the model is touched."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 422, not 500', () => pm.response.to.have.status(422));",
+              "const body = pm.response.json();",
+              "pm.test('returns validation detail', () => {",
+              "  pm.expect(body.detail).to.be.an('array').that.is.not.empty;",
+              "});",
+              "pm.test('flags every out-of-range field', () => {",
+              "  const fields = body.detail.map(d => d.loc[d.loc.length - 1]);",
+              "  pm.expect(fields).to.include.members(['pct_change', 'volume_ratio', 'down_streak', 'is_52w_high']);",
+              "});",
+              "pm.test('explains why', () => {",
+              "  pm.expect(body.detail[0].msg).to.be.a('string').and.not.empty;",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

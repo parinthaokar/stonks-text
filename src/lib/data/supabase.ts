@@ -140,7 +140,9 @@ export function createSupabaseSource(): DataSource {
       if (t.action !== "hold") {
         const state = await this.getSimState();
         const delta = t.action === "buy" ? -t.notional : t.notional;
-        await this.setSimState({ cash: state.cash + delta });
+        // Rounded to cents: a "max" buy subtracts the whole balance and float
+        // drift leaves a residue like -1e-13, which renders as "-$0.00".
+        await this.setSimState({ cash: Math.round((state.cash + delta) * 100) / 100 });
       }
     },
 
