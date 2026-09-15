@@ -17,7 +17,7 @@ import { stableHash, type GeneratedMessage, type Tone } from "./messages/rules";
 import type { PriceLookup, Trade, TradeAction } from "./portfolio";
 import { BET_SIZE } from "./config";
 
-export type StrategyId = "reactive" | "contrarian" | "coinflip";
+export type StrategyId = "reactive" | "contrarian" | "coinflip" | "model";
 
 /**
  * REACTIVE ("do what the text makes you feel").
@@ -69,6 +69,10 @@ export const STRATEGY_META: Record<StrategyId, { label: string; description: str
     label: "Coin flip",
     description: "Ignores what the text says and trades at random on the same days.",
   },
+  model: {
+    label: "Model",
+    description: "A trained classifier's suggested action, from the deployed pipeline.",
+  },
 };
 
 /**
@@ -85,9 +89,32 @@ function coinflipAction(ticker: string, date: string): TradeAction {
   return roll === 0 ? "buy" : roll === 1 ? "sell" : "hold";
 }
 
+/**
+ * MODEL.
+ *
+ * Reads the predictions exported by ml/build_pipeline.py -- the same fitted
+ * pipeline the API serves, evaluated once per day offline. Rendering this curve
+ * from live HTTP calls would mean ~900 requests per chart load.
+ *
+ * Days the model never scored (its features need a 50-day warm-up the message
+ * stream does not) fall back to "hold", which is the honest reading of "no
+ * opinion" and costs nothing in the ledger.
+ */
+let modelPredictions: Record<string, string> | null = null;
+
+export function loadModelPredictions(predictions: Record<string, string>) {
+  modelPredictions = predictions;
+}
+
+function modelAction(ticker: string, date: string): TradeAction {
+  const p = modelPredictions?.[`${ticker}|${date}`];
+  return p === "buy" || p === "sell" ? p : "hold";
+}
+
 /** Which way a given tone tells you to trade under a strategy. */
 export function actionFor(strategy: StrategyId, tone: Tone, ticker = "", date = ""): TradeAction {
   if (strategy === "coinflip") return coinflipAction(ticker, date);
+  if (strategy === "model") return modelAction(ticker, date);
   return (strategy === "reactive" ? REACTIVE : CONTRARIAN)[tone];
 }
 

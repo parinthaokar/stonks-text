@@ -7,6 +7,8 @@ import { computeIndicators, type Tone } from "@/lib/messages/rules";
 import { reactionFor } from "@/lib/messages/reactions";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
 import { TradeActions } from "@/components/trade-actions";
+import { RecommendationHint } from "@/components/recommendation-hint";
+import { buildRecommendRequest } from "@/lib/recommendation";
 import { loadAppData, portfolio } from "@/lib/app-data";
 import { BET_SIZE, TRADE_SIZE_COOKIE, parseTradeSize } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -84,6 +86,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
 
   const position = view.positions.find((p) => p.ticker === ticker);
 
+  // Indicator row for the current sim day, reused for the model request so the
+  // model sees exactly what the rules engine saw.
+  const latestContext = indicatorsByDate.get(today) ?? null;
+
   // Read the size preference server-side so the reply bar hydrates with the
   // value it was rendered with -- no first-paint flash of the wrong amount.
   const size = parseTradeSize((await cookies()).get(TRADE_SIZE_COOKIE)?.value) ?? BET_SIZE;
@@ -124,6 +130,19 @@ export default async function ThreadPage({ params }: { params: Promise<{ ticker:
         <ChatThread items={items} ticker={asset.ticker} color={asset.color} />
       </div>
       <ScrollToBottom ticker={ticker} dep={`${today}-${items.length}`} />
+
+      {/* The model's opinion on the newest text, collapsed until asked for. */}
+      {latestContext && (
+        <RecommendationHint
+          key={`${ticker}-${today}`}
+          ticker={asset.ticker}
+          request={buildRecommendRequest(
+            data.prices[ticker] ?? [],
+            latestContext,
+            asset.type === "crypto",
+          )}
+        />
+      )}
 
       <TradeActions
         assetId={asset.id}

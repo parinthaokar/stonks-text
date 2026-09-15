@@ -193,6 +193,31 @@ Sharpe annualise with the conventional 252-session factor.
 
 ---
 
+## The recommendation engine (ML service)
+
+A second deliverable in `ml/`: a fitted scikit-learn Pipeline served over FastAPI, deployed to
+Modal, and called from the browser by the Messages tab.
+
+- **API:** https://parinthaokar--stonks-recommendation-engine-fastapi-app.modal.run ([docs](https://parinthaokar--stonks-recommendation-engine-fastapi-app.modal.run/docs))
+- **Pipeline:** `MarketContextFeatures` (custom) → `StandardScaler` → `LogisticRegression`
+- **Learned state:** scaler means/stds and regression coefficients across three classes
+- **Label:** the best action over `t+1 → t+6`, so a signal from today's close is only ever
+  acted on tomorrow
+
+**It does not beat a majority-class baseline** — 34.5% against 36.9% on a temporal split with a
+10-day embargo. That is the expected result, it is stated next to every recommendation in the
+UI, and the model appears as a fourth line on the Data tab chart so the claim is checkable
+rather than asserted.
+
+Three framings were tested before this one — direction, volatility magnitude, and
+nearest-neighbour analogy — and none beat their baselines. The most telling result came from
+the analogue model: filtering to days where its neighbours *agreed* made it **less** accurate
+(41.7% when 80% agreed, versus 49.3% when 60% agreed), so confidence was inversely related to
+correctness. That is why the UI keeps the recommendation collapsed by default and prints the
+model's real track record beside it.
+
+See `ml/SUBMISSION.md` for URLs, the write-up and rebuild steps.
+
 ## Supabase
 
 Create a project, then run `supabase/schema.sql` in the SQL editor. Put credentials in

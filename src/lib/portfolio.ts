@@ -217,7 +217,7 @@ export function simulate(
           stats.skippedBuys += 1;
           continue;
         }
-        cash -= cost;
+        cash = Math.round((cash - cost) * 100) / 100;
         b.shares += t.quantity;
         b.costBasis += cost;
         stats.buys += 1;
@@ -229,7 +229,7 @@ export function simulate(
         }
         stats.sells += 1;
         const avgCost = b.shares > 0 ? b.costBasis / b.shares : 0;
-        cash += t.price * qty;
+        cash = Math.round((cash + t.price * qty) * 100) / 100;
         b.realizedPnl += (t.price - avgCost) * qty;
         b.costBasis -= avgCost * qty;
         b.shares -= qty;

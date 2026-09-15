@@ -12,6 +12,7 @@ export interface EquityPointRow {
   you: number;
   benchmark: number;
   coinflip: number;
+  model: number;
 }
 
 /**
@@ -27,6 +28,7 @@ const config = {
   you: { label: "Your trades", color: "var(--viz-1)" },
   benchmark: { label: "Buy & hold", color: "var(--viz-2)" },
   coinflip: { label: "Coin flip", color: "var(--viz-3)" },
+  model: { label: "Model", color: "var(--viz-4)" },
 } satisfies ChartConfig;
 
 export function EquityChart({ data }: { data: EquityPointRow[] }) {
@@ -71,6 +73,7 @@ export function EquityChart({ data }: { data: EquityPointRow[] }) {
         <Line dataKey="you" stroke="var(--color-you)" strokeWidth={2} dot={false} isAnimationActive={false} />
         <Line dataKey="benchmark" stroke="var(--color-benchmark)" strokeWidth={2} dot={false} isAnimationActive={false} />
         <Line dataKey="coinflip" stroke="var(--color-coinflip)" strokeWidth={2} strokeDasharray="4 3" dot={false} isAnimationActive={false} />
+        <Line dataKey="model" stroke="var(--color-model)" strokeWidth={2} strokeDasharray="1 3" dot={false} isAnimationActive={false} />
       </LineChart>
     </ChartContainer>
   );

@@ -149,6 +149,7 @@
   --viz-1: #2a78d6;   /* blue    -- your trades */
   --viz-2: #eb6834;   /* orange  -- buy & hold */
   --viz-3: #1baf7a;   /* aqua    -- coin flip */
+  --viz-4: #eda100;   /* yellow  -- the model */
   --viz-seq: #2a78d6; /* single hue for magnitude bars */
   --viz-grid: #e7e7e4;
 }
@@ -157,6 +158,7 @@
   --viz-1: #3987e5;
   --viz-2: #d95926;
   --viz-3: #199e70;
+  --viz-4: #c98500;
   --viz-seq: #3987e5;
   --viz-grid: #2c2c2a;
 }

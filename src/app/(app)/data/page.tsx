@@ -6,7 +6,9 @@ import { MagnitudeBar } from "@/components/charts/magnitude-bar";
 import { Sparkline } from "@/components/charts/sparkline";
 import { loadAppData, portfolio } from "@/lib/app-data";
 import { simulate, summarize, equalWeightBuyAndHold } from "@/lib/portfolio";
-import { runStrategy } from "@/lib/strategies";
+import { runStrategy, loadModelPredictions } from "@/lib/strategies";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { RULE_META, type RuleId, type Tone } from "@/lib/messages/rules";
 import { currency, percent, pnlColor, signedPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -33,18 +35,47 @@ export default async function DataPage() {
     data.lookup,
   );
   const coinflipCurve = simulate(coinflipTrades, data.sim.startingCash, data.lookup, { from, to }).curve;
+
+  // The deployed model, plotted as a fourth strategy. Predictions were exported
+  // offline by ml/build_pipeline.py from the same fitted pipeline the API serves
+  // -- charting it from live HTTP would be ~900 requests per page load.
+  let modelCurve = coinflipCurve;
+  let modelAvailable = false;
+  try {
+    const file = JSON.parse(
+      readFileSync(join(process.cwd(), "data", "ml", "predictions.json"), "utf8"),
+    ) as { predictions: Record<string, string> };
+    loadModelPredictions(file.predictions);
+    const modelTrades = runStrategy(
+      "model",
+      visibleMessages.map((m) => ({
+        ticker: m.ticker, date: m.date, tone: m.tone as Tone, rule: m.rule as RuleId,
+        text: m.body, priority: m.priority, pctChange: m.pctChange,
+        volumeRatio: m.volumeRatio, close: m.close,
+      })),
+      data.lookup,
+    );
+    modelCurve = simulate(modelTrades, data.sim.startingCash, data.lookup, { from, to }).curve;
+    modelAvailable = true;
+  } catch {
+    // Predictions not exported yet; the chart simply omits the line.
+  }
   const benchCurve = equalWeightBuyAndHold(data.sim.startingCash, data.lookup, { from, to });
 
   const byDate = new Map<string, EquityPointRow>();
-  for (const p of view.curve) byDate.set(p.date, { date: p.date, you: p.totalValue, benchmark: 0, coinflip: 0 });
+  for (const p of view.curve) byDate.set(p.date, { date: p.date, you: p.totalValue, benchmark: 0, coinflip: 0, model: 0 });
   for (const p of benchCurve) { const r = byDate.get(p.date); if (r) r.benchmark = p.totalValue; }
   for (const p of coinflipCurve) { const r = byDate.get(p.date); if (r) r.coinflip = p.totalValue; }
+  for (const p of modelCurve) { const r = byDate.get(p.date); if (r) r.model = p.totalValue; }
   const equityRows = [...byDate.values()];
 
   const strategies = [
     { name: "Your trades", summary: summarize(view.curve), color: "var(--viz-1)" },
     { name: "Buy & hold", summary: summarize(benchCurve), color: "var(--viz-2)" },
     { name: "Coin flip", summary: summarize(coinflipCurve), color: "var(--viz-3)" },
+    ...(modelAvailable
+      ? [{ name: "Model", summary: summarize(modelCurve), color: "var(--viz-4)" }]
+      : []),
   ];
 
   // ---- per-asset volatility -------------------------------------------------
