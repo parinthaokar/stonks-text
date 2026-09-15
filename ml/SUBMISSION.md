@@ -6,7 +6,7 @@
 |---|---|
 | **Modal API** | https://parinthaokar--stonks-recommendation-engine-fastapi-app.modal.run |
 | **API docs** | https://parinthaokar--stonks-recommendation-engine-fastapi-app.modal.run/docs |
-| **Vercel frontend** | https://stonks-text.vercel.app — the recommendation appears under the newest text on the Messages tab, and as a fourth line on the Data tab chart |
+| **Vercel frontend** | **https://stonks-text.vercel.app/messages** — tap "Show what the model thinks" under the newest text. Also a fourth line on the Data tab chart. Verified: the deployed bundle contains the Modal URL and no `localhost`. |
 | **Repo** | https://github.com/parinthaokar/stonks-text |
 
 ## 3–5 sentences
