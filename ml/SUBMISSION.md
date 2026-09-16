@@ -11,20 +11,20 @@
 
 ## 3 sentences
 
-> I chose **logistic regression** because the output is one of three discrete actions
-> (sell / hold / buy) rather than a number, and it handles three classes natively via softmax —
-> and because a random forest and gradient boosting scored within noise of it on held-out data,
-> so the extra complexity bought nothing while logistic regression alone gives readable
-> coefficients. The service takes ten strictly backward-looking numbers describing a single
-> trading day — the day's move, volume against its 20-session average, realised volatility,
-> distance from the 50-day average, drawdown from the 52-week high, two 52-week-extreme flags,
-> up and down streak lengths, and a crypto flag — and returns a suggested action with a
-> probability for each, using my custom transformer **`MarketContextFeatures`**, which expands
-> those ten inputs into twenty-one engineered features with no hand-coded thresholds so any
-> decision boundary had to be learned rather than supplied. Built and served on
-> **scikit-learn 1.9.1**, it scores 34.5% on a temporal split with a 10-day embargo against a
-> 36.9% majority baseline — it does not beat that baseline, which is the expected result for
-> daily direction prediction, and the API returns that fact with every response.
+> I used **logistic regression** because the answer is one of three choices — sell, hold or buy
+> — instead of a number, and logistic regression handles three choices at once and gives a
+> percentage for each; I also tried a random forest and gradient boosting, but they scored
+> about the same, so I kept the simpler one because you can actually read what it learned. The
+> service takes ten numbers about a single day of trading — how much the price moved, how heavy
+> the trading was, how jumpy the stock has been lately, how far it sits from its recent average
+> and from its yearly high, whether it hit a yearly high or low, how many days in a row it has
+> risen or fallen, and whether it is crypto — and sends back a suggested action with a
+> percentage for each choice, using my custom transformer **`MarketContextFeatures`**, which
+> turns those ten numbers into twenty-one and never gets told where the cutoffs are, so it has
+> to work them out for itself. It runs on **scikit-learn 1.9.1**, and on data it had never seen
+> it was right 34.5% of the time against 36.9% for simply guessing the most common answer — so
+> it does not beat guessing, which is what you would expect when predicting daily stock moves,
+> and the API says exactly that in every response.
 
 **Custom transformer:** `MarketContextFeatures` (in `ml/pipeline_def.py`)
 **scikit-learn version:** `1.9.1`
