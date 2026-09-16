@@ -11,24 +11,25 @@
 
 ## 3–5 sentences
 
-> **Stonks & Texts — Recommendation Engine** takes ten backward-looking numbers describing a
-> single trading day (the day's move, volume against its 20-session average, realised
-> volatility, distance from the 50-day average, drawdown from the 52-week high, two
-> 52-week-extreme flags, up/down streak lengths and a crypto flag) and returns a suggested
-> action of sell, hold or buy, with a probability for each and the model's own measured
-> accuracy. The scikit-learn Pipeline is **MarketContextFeatures → StandardScaler →
-> LogisticRegression**, where **`MarketContextFeatures`** is my custom transformer
-> (`BaseEstimator` + `TransformerMixin`) that expands ten raw inputs into twenty-one features —
-> magnitude and direction separated, log-scaled volume, capped streaks, and three interaction
-> terms — with no hand-coded thresholds, so any decision boundary had to be learned. Learned
-> state lives in the scaler's per-feature means and standard deviations and the regression's
-> coefficients across three classes, serialized into a bundle dict with the classes, the
-> coefficient table and build metadata. Built and served on **scikit-learn 1.9.1**, pinned into
-> `requirements.txt` from the interpreter that fitted the artifact. Evaluated on a temporal
-> split with a 10-day embargo it scores 34.5% against a 36.9% majority baseline — it does **not**
-> beat the baseline, which is the expected result for daily direction prediction, and the API
-> returns that fact with every response so the interface reports it rather than implying
-> confidence the model has not earned.
+> I chose **logistic regression** because the task is multiclass classification — the output
+> is one of three discrete actions (sell / hold / buy), not a number — and logistic regression
+> handles three classes natively via softmax, returning a probability for each; I also tested a
+> random forest and gradient boosting, and since all three scored within noise of one another
+> on held-out data, the added complexity bought nothing while logistic regression is the only
+> one whose coefficients can be read directly to explain a prediction. The service takes ten
+> strictly backward-looking numbers describing a single trading day — the day's move, volume
+> against its 20-session average, realised volatility, distance from the 50-day average,
+> drawdown from the 52-week high, two 52-week-extreme flags, up and down streak lengths, and a
+> crypto flag — and returns a suggested action with a probability for each option. My custom
+> transformer is **`MarketContextFeatures`**, which expands those ten raw inputs into
+> twenty-one engineered features (magnitude and direction separated, log-scaled volume, capped
+> streaks, and three interaction terms) with no hand-coded thresholds, so any decision boundary
+> had to be learned rather than supplied. It is built and served on **scikit-learn 1.9.1**,
+> pinned into `requirements.txt` from the interpreter that fitted the artifact. Evaluated on a
+> temporal split with a 10-day embargo it scores 34.5% against a 36.9% majority baseline — it
+> does **not** beat the baseline, which is the expected result for daily direction prediction,
+> and the API returns that fact with every response so the interface reports it rather than
+> implying confidence the model has not earned.
 
 **Custom transformer:** `MarketContextFeatures` (in `ml/pipeline_def.py`)
 **scikit-learn version:** `1.9.1`
